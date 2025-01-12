@@ -1,0 +1,75 @@
+///*
+Scenario:
+A program takes user input, calculates the sum of two numbers, and displays the result. We'll apply SoC to ensure each part of the application (input, processing, and output) is handled by a separate class or method.
+
+*///
+//Without SoC (Tightly Coupled Code)
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Console.Write("Enter the first number: ");
+        int num1 = int.Parse(Console.ReadLine());
+
+        Console.Write("Enter the second number: ");
+        int num2 = int.Parse(Console.ReadLine());
+
+        int sum = num1 + num2;
+
+        Console.WriteLine($"The sum of {num1} and {num2} is {sum}.");
+    }
+}
+
+//// With SOC
+using System;
+
+// Class responsible for user input
+class InputHandler
+{
+    public int GetNumber(string prompt)
+    {
+        Console.Write(prompt);
+        return int.Parse(Console.ReadLine());
+    }
+}
+
+// Class responsible for business logic
+class Calculator
+{
+    public int Add(int num1, int num2)
+    {
+        return num1 + num2;
+    }
+}
+
+// Class responsible for output
+class OutputHandler
+{
+    public void DisplayResult(int num1, int num2, int result)
+    {
+        Console.WriteLine($"The sum of {num1} and {num2} is {result}.");
+    }
+}
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        // Create instances of the separate classes
+        var inputHandler = new InputHandler();
+        var calculator = new Calculator();
+        var outputHandler = new OutputHandler();
+
+        // Get inputs
+        int num1 = inputHandler.GetNumber("Enter the first number: ");
+        int num2 = inputHandler.GetNumber("Enter the second number: ");
+
+        // Process the calculation
+        int result = calculator.Add(num1, num2);
+
+        // Display the result
+        outputHandler.DisplayResult(num1, num2, result);
+    }
+}
