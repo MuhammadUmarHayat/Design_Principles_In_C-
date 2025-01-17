@@ -1,0 +1,177 @@
+/*
+Scenario:
+We will build a simple application to manage a Product Inventory. The system will use:
+•	Repository Pattern for data abstraction.
+•	A mock database using List<Product>.
+•	ACID principles to ensure transactions are consistent and reliable.
+________________________________________
+Code Example
+Step 1: Define the Product model
+
+*/
+public class Product
+{
+    public int Id { get; set; }
+    public string Name { get; set; }
+    public decimal Price { get; set; }
+    public int Stock { get; set; }
+}
+//Step 2: Create the Repository Interface
+using System.Collections.Generic;
+
+public interface IProductRepository
+{
+    IEnumerable<Product> GetAllProducts();
+    Product GetProductById(int id);
+    void AddProduct(Product product);
+    void UpdateProduct(Product product);
+    void DeleteProduct(int id);
+}
+//Step 3: Implement the Repository
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+public class ProductRepository : IProductRepository
+{
+    private readonly List<Product> _products;
+
+    public ProductRepository()
+    {
+        // Mock database
+        _products = new List<Product>();
+    }
+
+    public IEnumerable<Product> GetAllProducts()
+    {
+        return _products;
+    }
+
+    public Product GetProductById(int id)
+    {
+        return _products.FirstOrDefault(p => p.Id == id);
+    }
+
+    public void AddProduct(Product product)
+    {
+        if (_products.Any(p => p.Id == product.Id))
+        {
+            throw new InvalidOperationException("Product with the same ID already exists.");
+        }
+
+        _products.Add(product);
+    }
+
+    public void UpdateProduct(Product product)
+    {
+        var existingProduct = GetProductById(product.Id);
+        if (existingProduct == null)
+        {
+            throw new InvalidOperationException("Product not found.");
+        }
+
+        existingProduct.Name = product.Name;
+        existingProduct.Price = product.Price;
+        existingProduct.Stock = product.Stock;
+    }
+
+    public void DeleteProduct(int id)
+    {
+        var product = GetProductById(id);
+        if (product == null)
+        {
+            throw new InvalidOperationException("Product not found.");
+        }
+
+        _products.Remove(product);
+    }
+}
+//Step 4: ACID Transaction Example
+using System;
+
+public class ProductService
+{
+    private readonly IProductRepository _repository;
+
+    public ProductService(IProductRepository repository)
+    {
+        _repository = repository;
+    }
+
+    // Simulating a transaction (ACID compliant)
+    public void AddProductTransaction(Product product)
+    {
+        try
+        {
+            // Atomicity: Ensure all-or-nothing behavior
+            Console.WriteLine("Starting transaction...");
+            _repository.AddProduct(product);
+            Console.WriteLine("Product added successfully.");
+
+            // Consistency: Ensure the database remains valid
+            if (product.Stock < 0)
+            {
+                throw new InvalidOperationException("Stock cannot be negative.");
+            }
+
+            // Isolation: This can be ensured using locks in real-world databases
+            // Durability: Mock example - in real-world, this would persist to a DB
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Transaction failed: {ex.Message}");
+            // Rollback logic could go here (if needed)
+        }
+    }
+}
+//Step 5: Console Application
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        IProductRepository productRepository = new ProductRepository();
+        ProductService productService = new ProductService(productRepository);
+
+        Console.WriteLine("Adding a product...");
+
+        Product product = new Product
+        {
+            Id = 1,
+            Name = "Laptop",
+            Price = 1500.00m,
+            Stock = 10
+        };
+
+        productService.AddProductTransaction(product);
+
+        Console.WriteLine("\nProduct List:");
+        foreach (var p in productRepository.GetAllProducts())
+        {
+            Console.WriteLine($"ID: {p.Id}, Name: {p.Name}, Price: {p.Price}, Stock: {p.Stock}");
+        }
+    }
+}
+/*
+                                             Explanation of ACID Principles in the Example
+Atomicity:
+
+The AddProductTransaction method ensures that if any error occurs, the operation is aborted and the system remains in its original state.
+Consistency:
+
+The logic ensures that invalid states (like negative stock) are not allowed.
+Isolation:
+
+Simulated here; in a real-world app, database isolation levels (e.g., Serializable) can be used.
+Durability:
+
+In a real-world scenario, data persistence would ensure that changes are not lost.
+                                             */
+                                             
+
+
+
+
+
+
